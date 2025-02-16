@@ -1,0 +1,35 @@
+{
+  "name": "@hannal/editorjs-video-plugin",
+  "version": "0.0.1",
+  "description": "Video block tool for Editor.js supporting YouTube and Vimeo embeds with customizable options",
+  "main": "src/index.js",
+  "types": "src/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "editor.js",
+    "editorjs",
+    "video",
+    "youtube",
+    "vimeo",
+    "embed"
+  ],
+  "author": "Hannal <kay@hannal.net>",
+  "license": "MIT",
+  "peerDependencies": {
+    "@hannal/editorjs": "^2.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hannal/editorjs-video-plugin.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hannal/editorjs-video-plugin/issues"
+  },
+  "homepage": "https://github.com/hannal/editorjs-video-plugin#readme",
+  "publishConfig": {
+    "access": "public"
+  }
+}
