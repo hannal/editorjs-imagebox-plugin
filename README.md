@@ -33,7 +33,7 @@ You can include the plugin directly in your HTML file:
 <script src="https://cdn.jsdelivr.net/npm/@hannal/editorjs@latest"></script>
 
 <!-- Include the Video Plugin -->
-<script src="https://cdn.jsdelivr.net/npm/@hannal/editorjs-video-plugin@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/@hannal/editorjs-video-plugin@latest/dist/video-plugin.umd.js"></script>
 
 <script>
   const editor = new EditorJS({
@@ -49,18 +49,39 @@ You can include the plugin directly in your HTML file:
 </script>
 ```
 
-Or use it via CDN in an ES module:
+### ES Module
+
+You can also use it as an ES module:
 
 ```html
 <script type="module">
-  import { Video, videoParser } from 'https://cdn.jsdelivr.net/npm/@hannal/editorjs-video-plugin@latest/src/index.js';
-  
+  import EditorJS from '@hannal/editorjs';
+  import { Video } from '@hannal/editorjs-video-plugin';
+
   const editor = new EditorJS({
     tools: {
-      video: Video
+      video: {
+        class: Video,
+        config: {
+          // Optional platform configurations
+        }
+      }
     }
   });
 </script>
+```
+
+Or in your JavaScript files:
+
+```javascript
+import EditorJS from '@hannal/editorjs';
+import { Video, videoParser } from '@hannal/editorjs-video-plugin';
+
+const editor = new EditorJS({
+  tools: {
+    video: Video
+  }
+});
 ```
 
 ## Usage
