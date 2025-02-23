@@ -1,6 +1,6 @@
 {
   "name": "@hannal/editorjs-imagebox-plugin",
-  "version": "1.0.0",
+  "version": "1.0.4",
   "description": "Imagebox for Editor.js",
   "main": "dist/imagebox.cjs.js",
   "module": "dist/imagebox.esm.js",
@@ -27,8 +27,7 @@
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
     "typescript": "^5.0.0",
-    "ts-loader": "^9.4.0",
-    "@types/editorjs__editorjs": "^2.0.0"
+    "ts-loader": "^9.4.0"
   },
   "peerDependencies": {
     "@editorjs/editorjs": "^2.0.0"

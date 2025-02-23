@@ -1,6 +1,6 @@
 import './styles.css';
 
-export default class ImageBox {
+class ImageBox {
   static get toolbox() {
     return {
       title: 'ImageBox',
@@ -228,7 +228,7 @@ export default class ImageBox {
 }
 
 
-export const imageboxParser = {
+const imageBoxParser = {
   imageBox: (block) => {
     const data = block.data;
     
@@ -247,3 +247,5 @@ export const imageboxParser = {
     return `<figure class="imagebox-wrapper">${imageHtml}${caption}</figure>`;
   }
 };
+
+export { ImageBox, imageBoxParser };

@@ -36,7 +36,7 @@ You can include the plugin directly in your HTML file:
   const editor = new EditorJS({
     tools: {
       imagebox: {
-        class: ImageBox
+        class: ImageBox.ImageBox
       }
     }
   });
@@ -50,7 +50,7 @@ You can also use it as an ES module:
 ```html
 <script type="module">
   import EditorJS from '@hannal/editorjs';
-  import { ImageBox } from '@hannal/editorjs-imagebox-plugin';
+  import { ImageBox, imageBoxParser } from '@hannal/editorjs-imagebox-plugin';
 
   const editor = new EditorJS({
     tools: {
@@ -66,7 +66,7 @@ Or in your JavaScript files:
 
 ```javascript
 import EditorJS from '@hannal/editorjs';
-import { ImageBox, imageboxParser } from '@hannal/editorjs-imagebox-plugin';
+import { ImageBox, imageBoxParser } from '@hannal/editorjs-imagebox-plugin';
 
 const editor = new EditorJS({
   tools: {
@@ -80,7 +80,7 @@ const editor = new EditorJS({
 Add the ImageBox tool to your Editor.js configuration:
 
 ```javascript
-import { ImageBox, imageboxParser } from '@hannal/editorjs-imagebox-plugin';
+import { ImageBox, imageBoxParser } from '@hannal/editorjs-imagebox-plugin';
 
 const editor = new EditorJS({
   tools: {
@@ -96,7 +96,9 @@ const editor = new EditorJS({
 ```javascript
 const editor = new EditorJS({
   tools: {
-    imagebox: ImageBox
+    imagebox: {
+      class: ImageBox
+    }
   }
 });
 ```
@@ -125,11 +127,11 @@ To render the saved data as HTML, use the provided parser:
 
 ```javascript
 import edjsHTML from "editorjs-html";
-import { imageboxParser } from "@hannal/editorjs-imagebox-plugin";
+import { imageBoxParser } from "@hannal/editorjs-imagebox-plugin";
 import "@hannal/editorjs-imagebox-plugin/src/parser.css";
 
 const edjsParser = edjsHTML({
-  imagebox: imageboxParser
+  imagebox: imageBoxParser
 });
 
 const html = edjsParser.parse(editorData);

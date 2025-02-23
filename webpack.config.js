@@ -1,28 +1,15 @@
 const path = require('path');
 
-module.exports = {
+// 공통 설정
+const common = {
   entry: './src/index.js',
-  output: {
-    path: path.resolve(__dirname, 'dist'),
-    filename: 'bundle.[format].js',
-    library: {
-      name: 'ImageTool',
-      type: 'umd',
-      export: 'default',
-    },
-    globalObject: 'this',
-    clean: true
-  },
   module: {
     rules: [
       {
         test: /\.js$/,
         exclude: /node_modules/,
         use: {
-          loader: 'babel-loader',
-          options: {
-            presets: ['@babel/preset-env']
-          }
+          loader: 'babel-loader'
         }
       },
       {
@@ -49,4 +36,47 @@ module.exports = {
       root: 'EditorJS'
     }
   }
-}; 
+};
+
+// 각 포맷별 설정
+module.exports = [
+  // UMD
+  {
+    ...common,
+    output: {
+      path: path.resolve(__dirname, 'dist'),
+      filename: 'imagebox.umd.js',
+      library: {
+        name: 'ImageBox',
+        type: 'umd',
+        export: ['ImageBox', 'imageBoxParser']
+      },
+      globalObject: 'this'
+    }
+  },
+  // CommonJS
+  {
+    ...common,
+    output: {
+      path: path.resolve(__dirname, 'dist'),
+      filename: 'imagebox.cjs.js',
+      library: {
+        type: 'commonjs2'
+      }
+    }
+  },
+  // ES Module
+  {
+    ...common,
+    output: {
+      path: path.resolve(__dirname, 'dist'),
+      filename: 'imagebox.esm.js',
+      library: {
+        type: 'module'
+      }
+    },
+    experiments: {
+      outputModule: true
+    }
+  }
+]; 
