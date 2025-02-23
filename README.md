@@ -36,9 +36,14 @@ You can include the plugin directly in your HTML file:
   const editor = new EditorJS({
     tools: {
       imagebox: {
-        class: ImageBox.ImageBox
+        class: ImageBoxPlugin.ImageBox
       }
     }
+  });
+
+  // Parser usage example
+  const edjsParser = edjsHTML({
+    imagebox: ImageBoxPlugin.imageBoxParser
   });
 </script>
 ```

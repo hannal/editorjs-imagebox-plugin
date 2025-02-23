@@ -47,9 +47,8 @@ module.exports = [
       path: path.resolve(__dirname, 'dist'),
       filename: 'imagebox.umd.js',
       library: {
-        name: 'ImageBox',
-        type: 'umd',
-        export: ['ImageBox', 'imageBoxParser']
+        name: 'ImageBoxPlugin',
+        type: 'umd'
       },
       globalObject: 'this'
     }
