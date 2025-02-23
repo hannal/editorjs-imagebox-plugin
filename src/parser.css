@@ -1,0 +1,23 @@
+.imagebox-wrapper {
+  margin: 1em 0;
+  text-align: center;
+}
+
+.imagebox {
+  max-width: 100%;
+  vertical-align: bottom;
+}
+
+.imagebox--with-border {
+  border: 1px solid #e8e8eb;
+}
+
+.imagebox--width-80 {
+  width: 80%;
+}
+
+.imagebox-wrapper figcaption {
+  padding: 8px 0;
+  color: #707684;
+  font-size: 0.9em;
+} 

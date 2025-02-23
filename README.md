@@ -1,27 +1,27 @@
-# EditorJS Video Plugin
+# EditorJS ImageBox Plugin
 
-A customizable video block plugin for Editor.js that supports YouTube, Vimeo, and other video platforms.
+A customizable image box plugin for Editor.js that supports image border, resizing, and link options.
 
 ## Features
 
-- 🎥 Built-in support for YouTube and Vimeo
-- 🔌 Extensible platform support - add your own video platforms
-- 📋 URL paste handling
-- 🔄 Real-time preview
-- ⚙️ Customizable embed options:
-  - Fullscreen control
-  - Clipboard access
-  - Gyroscope functionality
+- 🖼 Image display with URL
+- 🎨 Built-in styling options:
+  - Border toggle
+  - Width adjustment (80% / 100%)
+  - Link attachment
+- 📝 Image metadata:
+  - Alt text
+  - Caption
 - 📱 Responsive design
-- 🔒 Sanitization support
-- 📖 Read-only mode support
+- 🔒 Read-only mode support
+- 📖 TypeScript support
 
 ## Installation
 
 ### NPM
 
 ```bash
-npm install @hannal/editorjs-video-plugin
+npm install @hannal/editorjs-imagebox-plugin
 ```
 
 ### Browser
@@ -29,20 +29,14 @@ npm install @hannal/editorjs-video-plugin
 You can include the plugin directly in your HTML file:
 
 ```html
-<!-- Include Editor.js -->
-<script src="https://cdn.jsdelivr.net/npm/@hannal/editorjs@latest"></script>
-
-<!-- Include the Video Plugin -->
-<script src="https://cdn.jsdelivr.net/npm/@hannal/editorjs-video-plugin@latest/dist/video-plugin.umd.js"></script>
+<!-- Include the ImageBox Plugin -->
+<script src="https://cdn.jsdelivr.net/npm/@hannal/editorjs-imagebox-plugin@latest/dist/imagebox.umd.js"></script>
 
 <script>
   const editor = new EditorJS({
     tools: {
-      video: {
-        class: VideoPlugin.Video,
-        config: {
-          // Optional platform configurations
-        }
+      imagebox: {
+        class: ImageBox
       }
     }
   });
@@ -56,15 +50,12 @@ You can also use it as an ES module:
 ```html
 <script type="module">
   import EditorJS from '@hannal/editorjs';
-  import { Video } from '@hannal/editorjs-video-plugin';
+  import { ImageBox } from '@hannal/editorjs-imagebox-plugin';
 
   const editor = new EditorJS({
     tools: {
-      video: {
-        class: Video,
-        config: {
-          // Optional platform configurations
-        }
+      imagebox: {
+        class: ImageBox
       }
     }
   });
@@ -75,29 +66,26 @@ Or in your JavaScript files:
 
 ```javascript
 import EditorJS from '@hannal/editorjs';
-import { Video, videoParser } from '@hannal/editorjs-video-plugin';
+import { ImageBox, imageboxParser } from '@hannal/editorjs-imagebox-plugin';
 
 const editor = new EditorJS({
   tools: {
-    video: Video
+    imagebox: ImageBox
   }
 });
 ```
 
 ## Usage
 
-Add the Video tool to your Editor.js configuration:
+Add the ImageBox tool to your Editor.js configuration:
 
 ```javascript
-import { Video, videoParser } from '@hannal/editorjs-video-plugin';
+import { ImageBox, imageboxParser } from '@hannal/editorjs-imagebox-plugin';
 
 const editor = new EditorJS({
   tools: {
-    video: {
-      class: Video,
-      config: {
-        // Optional platform configurations
-      }
+    imagebox: {
+      class: ImageBox
     }
   }
 });
@@ -108,7 +96,7 @@ const editor = new EditorJS({
 ```javascript
 const editor = new EditorJS({
   tools: {
-    video: Video
+    imagebox: ImageBox
   }
 });
 ```
@@ -119,60 +107,14 @@ The tool saves data in the following format:
 
 ```javascript
 {
-  url: 'https://www.youtube.com/watch?v=example',
-  videoId: 'example',
-  provider: 'youtube',
-  fullscreen: true,
-  clipboard: true,
-  gyroscope: true
-}
-```
-
-## Adding Custom Video Platforms
-
-You can add support for additional video platforms by providing a platforms configuration:
-
-```javascript
-const editor = new EditorJS({
-  tools: {
-    video: {
-      class: Video,
-      config: {
-        platforms: {
-          dailymotion: {
-            regex: /^.+dailymotion.com\/(?:video|embed)\/([^/?]+)/,
-            embedUrl: (videoId) => `https://www.dailymotion.com/embed/video/${videoId}`,
-            validate: (match) => match && match[1],
-            getId: (match) => match[1]
-          }
-        }
-      }
-    }
-  }
-});
-```
-
-### Platform Configuration Options
-
-Each platform configuration requires:
-
-| Property | Type | Description |
-|----------|------|-------------|
-| regex | RegExp | Regular expression to match the video URL |
-| embedUrl | Function | Function that returns the embed URL for a video ID |
-| validate | Function | Function that validates the regex match |
-| getId | Function | Function that extracts the video ID from the regex match |
-
-### Example: Adding Dailymotion Support
-
-```javascript
-const dailymotionConfig = {
-  dailymotion: {
-    // Matches URLs like: https://www.dailymotion.com/video/x7tgd2g
-    regex: /^.+dailymotion.com\/(?:video|embed)\/([^/?]+)/,
-    embedUrl: (videoId) => `https://www.dailymotion.com/embed/video/${videoId}`,
-    validate: (match) => match && match[1],
-    getId: (match) => match[1]
+  type: 'imagebox',
+  data: {
+    url: 'https://example.com/image.jpg',
+    caption: 'Image caption',
+    alt: 'Alt text',
+    withBorder: false,
+    withLink: 'https://example.com',
+    stretched: false
   }
 }
 ```
@@ -182,20 +124,34 @@ const dailymotionConfig = {
 To render the saved data as HTML, use the provided parser:
 
 ```javascript
-import { videoParser } from '@hannal/editorjs-video-plugin';
+import edjsHTML from "editorjs-html";
+import { imageboxParser } from "@hannal/editorjs-imagebox-plugin";
+import "@hannal/editorjs-imagebox-plugin/src/parser.css";
 
-const html = videoParser.video(blockData);
+const edjsParser = edjsHTML({
+  imagebox: imageboxParser
+});
+
+const html = edjsParser.parse(editorData);
 ```
 
-## Configuration Options
+The parser generates semantic HTML with the following structure:
 
-The video block supports the following embed options:
+```html
+<figure class="imagebox-wrapper">
+  <img src="image-url.jpg" alt="Alt text" class="imagebox imagebox--with-border imagebox--width-80">
+  <figcaption>Image caption</figcaption>
+</figure>
+```
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| fullscreen | boolean | true | Allows fullscreen mode |
-| clipboard | boolean | true | Enables clipboard access |
-| gyroscope | boolean | true | Enables gyroscope functionality |
+### Parser CSS Classes
+
+The parser uses the following CSS classes that you can customize:
+
+- `imagebox-wrapper`: The container element
+- `imagebox`: The image element
+- `imagebox--with-border`: Added when border is enabled
+- `imagebox--width-80`: Added when width is set to 80%
 
 ## Development
 

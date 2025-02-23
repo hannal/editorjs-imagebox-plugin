@@ -1,243 +1,249 @@
-class Video {
+import './styles.css';
+
+export default class ImageBox {
   static get toolbox() {
     return {
-      title: 'Video',
-      icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M10 16.5l6-4.5-6-4.5v9zM20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V6h16v12z" fill="currentColor"/></svg>'
+      title: 'ImageBox',
+      icon: '<svg width="17" height="15" viewBox="0 0 336 276" xmlns="http://www.w3.org/2000/svg"><path d="M291 150V79c0-19-15-34-34-34H79c-19 0-34 15-34 34v42l67-44 81 72 56-29 42 30zm0 52l-42-30-56 29-81-67-66 39v23c0 19 15 34 34 34h178c17 0 31-13 34-29zM79 0h178c44 0 79 35 79 79v118c0 44-35 79-79 79H79c-44 0-79-35-79-79V79C0 35 35 0 79 0z"/></svg>'
     };
   }
 
-  constructor({ data, api, config = {} }) {
+  constructor({data, api, readOnly}) {
+    this.api = api;
+    this.readOnly = readOnly;
     this.data = {
       url: data.url || '',
-      videoId: data.videoId || '',
-      provider: data.provider || '',
-      fullscreen: data.fullscreen !== undefined ? data.fullscreen : true,
-      clipboard: data.clipboard !== undefined ? data.clipboard : true,
-      gyroscope: data.gyroscope !== undefined ? data.gyroscope : true
+      caption: data.caption || '',
+      alt: data.alt || '',
+      withBorder: data.withBorder !== undefined ? data.withBorder : false,
+      withLink: data.withLink || '',
+      stretched: data.stretched !== undefined ? data.stretched : false,
     };
-    this.api = api;
-    this.wrapper = undefined;
 
-    // Default video platforms configuration
-    this.platforms = {
-      youtube: {
-        regex: /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/,
-        embedUrl: (videoId) => `https://www.youtube.com/embed/${videoId}`,
-        validate: (match) => match && match[2].length === 11,
-        getId: (match) => match[2]
-      },
-      vimeo: {
-        regex: /(?:https?:\/\/)?(?:www\.)?(?:vimeo\.com\/)([0-9]+)/,
-        embedUrl: (videoId) => `https://player.vimeo.com/video/${videoId}`,
-        validate: (match) => match && match[1],
-        getId: (match) => match[1]
-      },
-      ...config.platforms // Merge custom platform configurations
+    this.nodes = {
+      wrapper: null,
+      imageContainer: null,
+      imageEl: null,
+      caption: null,
     };
-  }
 
-  static get sanitize() {
-    return {
-      url: {},
-      videoId: {},
-      provider: {},
-      fullscreen: {},
-      clipboard: {},
-      gyroscope: {}
-    }
-  }
-
-  validate(savedData) {
-    if (!savedData.url || !savedData.videoId || !savedData.provider) {
-      return false;
-    }
-    return true;
-  }
-
-  static get isReadOnlySupported() {
-    return true;
-  }
-
-  static get pasteConfig() {
-    return {
-      patterns: {
-        youtube: /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/,
-        vimeo: /(?:https?:\/\/)?(?:www\.)?(?:vimeo\.com\/)([^&\s]+)/
+    // BlockTune 메서드들을 인스턴스에 바인딩
+    this.tunes = [
+      {
+        name: 'withBorder',
+        icon: '<svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M15.8 10.592v2.043h2.35v2.138H15.8v2.232h-2.25v-2.232h-2.4v-2.138h2.4v-2.28h2.25v.237h1.15-1.15zM1.9 8.455v-3.42c0-1.154.985-2.09 2.2-2.09h4.2v2.137H4.1v3.373H1.9zm0 2.137h2.2v3.374h8.4v2.138H4.1c-1.215 0-2.2-.936-2.2-2.09v-3.422zm15.9-2.137H15.6V5.082h-4.2V2.945h4.2c1.215 0 2.2.936 2.2 2.09v3.42z"/></svg>',
+        label: 'Add border',
+        toggle: true,
+        isActive: this.data.withBorder,
+        onClick: () => this._toggleBorder()
+      },
+      {
+        name: 'stretched',
+        icon: '<svg width="17" height="10" viewBox="0 0 17 10" xmlns="http://www.w3.org/2000/svg"><path d="M13.568 5.925H4.056l1.703 1.703a1.125 1.125 0 0 1-1.59 1.591L.962 6.014A1.069 1.069 0 0 1 .588 4.26L4.38.469a1.069 1.069 0 0 1 1.512 1.511L4.084 3.787h9.606l-1.85-1.85a1.069 1.069 0 1 1 1.512-1.51l3.792 3.791a1.069 1.069 0 0 1-.475 1.788L13.514 9.16a1.125 1.125 0 0 1-1.59-1.591l1.644-1.644z"/></svg>',
+        label: 'Stretch image',
+        toggle: true,
+        isActive: this.data.stretched,
+        onClick: () => this._toggleStretched()
       }
-    }
-  }
-
-  onPaste(event) {
-    const text = event.detail.data;
-    const videoInfo = this._parseVideoUrl(text);
-    
-    if (videoInfo) {
-      this.data = {
-        ...this.data,
-        url: text,
-        videoId: videoInfo.videoId,
-        provider: videoInfo.provider
-      };
-    }
-  }
-
-  _parseVideoUrl(url) {
-    for (const [provider, platform] of Object.entries(this.platforms)) {
-      const match = url.match(platform.regex);
-      if (platform.validate(match)) {
-        return {
-          videoId: platform.getId(match),
-          provider
-        };
-      }
-    }
-    return null;
+    ];
   }
 
   render() {
-    this.wrapper = document.createElement('div');
-    this.wrapper.classList.add('video-wrapper');
+    this.nodes.wrapper = document.createElement('div');
+    this.nodes.wrapper.classList.add('image-tool');
 
     if (this.data.url) {
-      this._createVideoPreview(this.data.url);
+      this._createImage(this.data.url);
+    } else {
+      this._showUrlInput();
     }
 
-    const input = document.createElement('input');
-    input.placeholder = 'Enter video URL (YouTube or Vimeo)';
-    input.value = this.data.url || '';
-    input.classList.add('cdx-input');
+    return this.nodes.wrapper;
+  }
 
-    input.addEventListener('paste', (event) => {
-      this._createVideoPreview(event.clipboardData.getData('text'));
+  _createImage(url) {
+    const imageContainer = document.createElement('div');
+    imageContainer.classList.add('image-tool__image');
+    
+    const image = document.createElement('img');
+    image.src = url;
+    image.alt = this.data.alt;
+    
+    if (this.data.withBorder) {
+      imageContainer.classList.add('image-tool__image--bordered');
+    }
+    
+    if (!this.data.stretched) {
+      imageContainer.classList.add('image-tool__image--width-80');
+    }
+
+    if (this.data.withLink) {
+      const link = document.createElement('a');
+      link.href = this.data.withLink;
+      link.target = '_blank';
+      link.appendChild(image);
+      imageContainer.appendChild(link);
+    } else {
+      imageContainer.appendChild(image);
+    }
+
+    const inputsWrapper = document.createElement('div');
+    inputsWrapper.classList.add('image-tool__inputs');
+
+    // Alt text input
+    const altInput = document.createElement('input');
+    altInput.type = 'text';
+    altInput.placeholder = 'Alt text';
+    altInput.value = this.data.alt;
+    altInput.addEventListener('change', (e) => {
+      this.data.alt = e.target.value;
+      image.alt = e.target.value;
+    });
+    inputsWrapper.appendChild(altInput);
+
+    // Link input
+    const linkInput = document.createElement('input');
+    linkInput.type = 'text';
+    linkInput.placeholder = 'Link URL';
+    linkInput.value = this.data.withLink;
+    linkInput.addEventListener('change', (e) => {
+      this.data.withLink = e.target.value;
+      this._updateLink(e.target.value);
+    });
+    inputsWrapper.appendChild(linkInput);
+
+    const caption = document.createElement('div');
+    caption.classList.add('image-tool__caption');
+    caption.contentEditable = !this.readOnly;
+    caption.innerHTML = this.data.caption || '';
+
+    this.nodes.imageContainer = imageContainer;
+    this.nodes.imageEl = image;
+    this.nodes.caption = caption;
+
+    this.nodes.wrapper.innerHTML = '';
+    this.nodes.wrapper.appendChild(imageContainer);
+    this.nodes.wrapper.appendChild(inputsWrapper);
+    this.nodes.wrapper.appendChild(caption);
+  }
+
+  _showUrlInput() {
+    const urlContainer = document.createElement('div');
+    urlContainer.classList.add('image-tool__url-container');
+
+    const urlInput = document.createElement('input');
+    urlInput.type = 'text';
+    urlInput.placeholder = 'Paste image URL';
+    urlInput.classList.add('image-tool__url-input');
+
+    const addButton = document.createElement('button');
+    addButton.type = 'button';
+    addButton.textContent = 'Add Image';
+    addButton.classList.add('image-tool__button');
+
+    urlContainer.appendChild(urlInput);
+    urlContainer.appendChild(addButton);
+
+    this.nodes.wrapper.appendChild(urlContainer);
+
+    addButton.addEventListener('click', () => {
+      const url = urlInput.value.trim();
+      if (url) {
+        this.data.url = url;
+        this._createImage(url);
+      }
     });
 
-    input.addEventListener('change', (event) => {
-      this._createVideoPreview(event.target.value);
-    });
-
-    this.wrapper.appendChild(input);
-
-    const controls = document.createElement('div');
-    controls.classList.add('video-controls');
-    controls.style.marginTop = '10px';
-
-    const options = [
-      { id: 'fullscreen', label: 'Allow Fullscreen', checked: this.data.fullscreen },
-      { id: 'clipboard', label: 'Allow Clipboard', checked: this.data.clipboard },
-      { id: 'gyroscope', label: 'Allow Gyroscope', checked: this.data.gyroscope }
-    ];
-
-    options.forEach(option => {
-      const label = document.createElement('label');
-      label.style.marginRight = '15px';
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.checked = option.checked;
-      checkbox.addEventListener('change', (e) => {
-        this.data[option.id] = e.target.checked;
-        if (this.data.url) {
-          this._createVideoPreview(this.data.url);
+    urlInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const url = urlInput.value.trim();
+        if (url) {
+          this.data.url = url;
+          this._createImage(url);
         }
-      });
-      label.appendChild(checkbox);
-      label.appendChild(document.createTextNode(` ${option.label}`));
-      controls.appendChild(label);
+      }
     });
-
-    this.wrapper.appendChild(controls);
-    return this.wrapper;
   }
 
-  _createVideoPreview(url) {
-    const videoInfo = this._parseVideoUrl(url);
-    if (!videoInfo) {
-      return;
-    }
-
-    this.data = {
-      ...this.data,
-      url: url,
-      videoId: videoInfo.videoId,
-      provider: videoInfo.provider
-    };
-
-    const previewContainer = this.wrapper.querySelector('.video-preview');
-    if (previewContainer) {
-      previewContainer.remove();
-    }
-
-    const preview = document.createElement('div');
-    preview.classList.add('video-preview');
-    preview.style.marginTop = '10px';
-    preview.style.position = 'relative';
-    preview.style.paddingBottom = '56.25%';
-    preview.style.height = '0';
-    preview.style.overflow = 'hidden';
-
-    const iframe = document.createElement('iframe');
-    iframe.width = '100%';
-    iframe.height = '100%';
-    iframe.style.position = 'absolute';
-    iframe.style.top = '0';
-    iframe.style.left = '0';
-
-    let allow = [];
-    if (this.data.fullscreen) allow.push('fullscreen');
-    if (this.data.clipboard) allow.push('clipboard-write');
-    if (this.data.gyroscope) allow.push('gyroscope');
-    iframe.allow = allow.join('; ');
-
-    const platform = this.platforms[videoInfo.provider];
-    if (platform) {
-      iframe.src = platform.embedUrl(videoInfo.videoId);
-    }
-
-    preview.appendChild(iframe);
-    this.wrapper.insertBefore(preview, this.wrapper.firstChild);
-  }
-
-  save(blockContent) {
-    const videoInfo = this._parseVideoUrl(this.data.url);
+  save() {
     return {
       url: this.data.url,
-      videoId: videoInfo?.videoId || this.data.videoId,
-      provider: videoInfo?.provider || this.data.provider,
-      fullscreen: this.data.fullscreen,
-      clipboard: this.data.clipboard,
-      gyroscope: this.data.gyroscope
+      caption: this.nodes.caption ? this.nodes.caption.innerHTML : '',
+      alt: this.data.alt,
+      withBorder: this.data.withBorder,
+      withLink: this.data.withLink,
+      stretched: this.data.stretched,
     };
+  }
+
+  validate(data) {
+    return data.url.trim() !== '';
+  }
+
+  _toggleBorder() {
+    const { imageContainer } = this.nodes;
+    
+    this.data.withBorder = !this.data.withBorder;
+    imageContainer.classList.toggle('image-tool__image--bordered');
+  }
+
+  _toggleStretched() {
+    const { imageContainer } = this.nodes;
+    
+    this.data.stretched = !this.data.stretched;
+    imageContainer.classList.toggle('image-tool__image--width-80');
+  }
+
+  _updateLink(url) {
+    const { imageContainer, imageEl } = this.nodes;
+    
+    if (url) {
+      const link = document.createElement('a');
+      link.href = url;
+      link.target = '_blank';
+      link.appendChild(imageEl.cloneNode(true));
+      imageContainer.innerHTML = '';
+      imageContainer.appendChild(link);
+    } else {
+      imageContainer.innerHTML = '';
+      imageContainer.appendChild(imageEl);
+    }
+  }
+
+  renderSettings() {
+    // 각 tune의 HTML 요소를 반환
+    return this.tunes.map((tune) => ({
+      icon: tune.icon,
+      label: tune.label,
+      isActive: tune.isActive,
+      closeOnActivate: false,
+      onActivate: () => {
+        tune.onClick();
+        // isActive 상태 업데이트
+        tune.isActive = !tune.isActive;
+        return false;
+      }
+    }));
   }
 }
 
-const videoParser = {
-  video: (block) => {
-    if (!block.data.videoId) return '';
 
-    const allow = [];
-    if (block.data.fullscreen) allow.push('fullscreen');
-    if (block.data.clipboard) allow.push('clipboard-write');
-    if (block.data.gyroscope) allow.push('gyroscope');
+export const imageboxParser = {
+  imageBox: (block) => {
+    const data = block.data;
+    
+    let imageClasses = ['imagebox'];
+    if (data.withBorder) imageClasses.push('imagebox--with-border');
+    if (!data.stretched) imageClasses.push('imagebox--width-80');
 
-    // Default platforms configuration for parser
-    const platforms = {
-      youtube: (videoId) => `https://www.youtube.com/embed/${videoId}`,
-      vimeo: (videoId) => `https://player.vimeo.com/video/${videoId}`,
-      ...block.config?.platforms
-    };
+    let imageHtml = `<img src="${data.url}" alt="${data.alt || ''}" class="${imageClasses.join(' ')}" />`;
+    
+    if (data.withLink) {
+      imageHtml = `<a href="${data.withLink}" target="_blank" rel="noopener">${imageHtml}</a>`;
+    }
 
-    const embedUrl = platforms[block.data.provider]?.(block.data.videoId) || '';
-
-    return `
-      <div class="video-embed" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
-        <iframe
-          style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
-          src="${embedUrl}"
-          allow="${allow.join('; ')}"
-          allowfullscreen
-        ></iframe>
-      </div>
-    `;
+    const caption = data.caption ? `<figcaption>${data.caption}</figcaption>` : '';
+    
+    return `<figure class="imagebox-wrapper">${imageHtml}${caption}</figure>`;
   }
 };
-
-export { Video, videoParser };

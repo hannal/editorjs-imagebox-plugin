@@ -1,57 +1,59 @@
-import { API, BlockTool, BlockToolData } from '@hannal/editorjs';
+import { BlockTool, BlockToolData, API, ToolConfig } from '@editorjs/editorjs';
 
-export interface VideoConfig {
-  platforms?: {
-    [key: string]: {
-      regex: RegExp;
-      embedUrl: (videoId: string) => string;
-      validate: (match: RegExpMatchArray | null) => boolean;
-      getId: (match: RegExpMatchArray) => string;
-    };
-  };
-}
-
-export interface VideoData extends BlockToolData {
+export interface ImageBoxData extends BlockToolData {
   url: string;
-  videoId: string;
-  provider: string;
-  fullscreen: boolean;
-  clipboard: boolean;
-  gyroscope: boolean;
+  caption?: string;
+  alt?: string;
+  withBorder?: boolean;
+  withLink?: string;
+  stretched?: boolean;
 }
 
-export class Video implements BlockTool {
-  constructor({ data, api, config }: {
-    data: VideoData;
+export interface ImageBoxConfig extends ToolConfig {
+  // 설정 옵션이 필요하다면 여기에 추가
+}
+
+export interface BlockTune {
+  name: string;
+  icon: string;
+  label: string;
+  toggle?: boolean;
+  isActive?: boolean;
+  onClick?: () => void;
+}
+
+export default class ImageBox implements BlockTool {
+  constructor(options: {
+    data: ImageBoxData;
+    config: ImageBoxConfig;
     api: API;
-    config?: VideoConfig;
+    readOnly: boolean;
   });
 
-  static get toolbox(): { title: string; icon: string };
+  static get toolbox(): {
+    title: string;
+    icon: string;
+  };
+
   static get isReadOnlySupported(): boolean;
-  static get sanitize(): {
-    url: {};
-    videoId: {};
-    provider: {};
-    fullscreen: {};
-    clipboard: {};
-    gyroscope: {};
-  };
-  static get pasteConfig(): {
-    patterns: {
-      youtube: RegExp;
-      vimeo: RegExp;
-    };
-  };
 
   render(): HTMLElement;
-  save(blockContent: HTMLElement): VideoData;
-  validate(savedData: VideoData): boolean;
-  onPaste(event: CustomEvent): void;
+
+  renderSettings(): {
+    icon: string;
+    label: string;
+    isActive: boolean;
+    closeOnActivate: boolean;
+    onActivate: () => boolean;
+  }[];
+
+  save(): ImageBoxData;
+
+  validate(data: ImageBoxData): boolean;
 }
 
-export interface VideoParser {
-  video: (block: { data: VideoData; config?: VideoConfig }) => string;
-}
+export type ImageBoxParserData = {
+  data: ImageBoxData;
+};
 
-export const videoParser: VideoParser; 
+export const imageboxParser: (block: ImageBoxParserData) => string; 

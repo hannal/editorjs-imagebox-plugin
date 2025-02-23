@@ -1,14 +1,17 @@
-export default {
+const path = require('path');
+
+module.exports = {
   entry: './src/index.js',
   output: {
-    filename: 'video-plugin.js',
-    path: new URL('./dist', import.meta.url).pathname,
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'bundle.[format].js',
     library: {
-      name: 'VideoPlugin',
+      name: 'ImageTool',
       type: 'umd',
-      export: ['Video', 'videoParser'],
+      export: 'default',
     },
-    globalObject: 'this'
+    globalObject: 'this',
+    clean: true
   },
   module: {
     rules: [
@@ -21,7 +24,29 @@ export default {
             presets: ['@babel/preset-env']
           }
         }
+      },
+      {
+        test: /\.ts$/,
+        exclude: /node_modules/,
+        use: {
+          loader: 'ts-loader'
+        }
+      },
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader']
       }
     ]
+  },
+  resolve: {
+    extensions: ['.ts', '.js']
+  },
+  externals: {
+    '@editorjs/editorjs': {
+      commonjs: '@editorjs/editorjs',
+      commonjs2: '@editorjs/editorjs',
+      amd: '@editorjs/editorjs',
+      root: 'EditorJS'
+    }
   }
 }; 
